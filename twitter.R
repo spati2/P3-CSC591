@@ -2,6 +2,11 @@
 library(streamR)
 library(ROAuth)
 library(plyr)
+# Text mining packages
+library(stringr)
+library(tm)
+library(SnowballC)
+
 my_oauth <- OAuthFactory$new(consumerKey=consumerKey,consumerSecret=consumerSecret, requestURL=requestURL,accessURL=accessURL, authURL=authURL)
 my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
 filterStream("tweets.json", track = c("Love", "Hate"), timeout = 10,oauth = my_oauth)
