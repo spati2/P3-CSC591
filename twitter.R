@@ -40,3 +40,25 @@ textData2[,1] = removePunctuation(textData2[,1],preserve_intra_word_dashes=TRUE)
 textData2[,1]<-removeWords(textData2[,1],stopwords("english"))
 ##stem completion
 textData2[,1]<-stemDocument(textData2[,1])
+
+
+# Step 3
+# Create term document matrix
+s2 <- Corpus(VectorSource(textData2[,1]))
+TDM <- TermDocumentMatrix(s2)
+
+# sanity check to see what it looks like
+inspect(TDM[1:100,1:10])
+
+# find words used over 10 times
+freqTerms <- findFreqTerms(TDM, 10)
+
+# Remove sparse terms. Play with constant to get reasonable number of entries
+TDM.common = removeSparseTerms(TDM, 0.99)
+dim(TDM.common)
+
+# Find words associated with love or hate, this is just to visualize
+findAssocs(TDM.common, "love", 0.1)
+findAssocs(TDM.common, "hate", 0.1)
+
+#TODO, use TDM.common to classify tweets
