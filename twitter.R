@@ -67,3 +67,10 @@ findAssocs(TDM.common, "love", 0.1)
 findAssocs(TDM.common, "hate", 0.1)
 
 #TODO, use TDM.common to classify tweets
+hdt <- HoeffdingTree(numericEstimator = "GaussianNumericAttributeClassObserver")
+hdt
+
+#formula is what we need to update
+mymodel <- trainMOA(model = hdt, 
+                    formula = love ~ , 
+                    data = TDM.common)
