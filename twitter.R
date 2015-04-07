@@ -6,6 +6,7 @@ library(plyr)
 library(stringr)
 library(tm)
 library(SnowballC)
+library(devtools)#for RMOA
 
 my_oauth <- OAuthFactory$new(consumerKey=consumerKey,consumerSecret=consumerSecret, requestURL=requestURL,accessURL=accessURL, authURL=authURL)
 my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
@@ -13,7 +14,7 @@ filterStream("tweets.json", track = c("Love", "Hate"), timeout = 10,oauth = my_o
 
 oneData<-parseTweets("tweets.json")
 
-textData1<-ddply(oneData,.(text),fg)
+
 fg<-function(a)
 {
   if(!((length(grep("love",a,ignore.case=TRUE))>0) & (length(grep("hate",a,ignore.case=TRUE))>0)))
@@ -21,7 +22,7 @@ fg<-function(a)
     data.frame(a) 
   }
 }
-
+textData1<-ddply(oneData,.(text),fg)
 textData<-as.data.frame(textData1[,1])
 View(textData)
 
