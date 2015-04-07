@@ -9,8 +9,8 @@ library(SnowballC)
 library(devtools)#for RMOA
 install.packages("ff")
 install.packages("rJava")
-install_github("jwijffels/RMOA", subdir="RMOAjars/pkg")
-install_github("jwijffels/RMOA", subdir="RMOA/pkg")
+library(RMOA)
+
 
 my_oauth <- OAuthFactory$new(consumerKey=consumerKey,consumerSecret=consumerSecret, requestURL=requestURL,accessURL=accessURL, authURL=authURL)
 my_oauth$handshake(cainfo = system.file("CurlSSL", "cacert.pem", package = "RCurl"))
