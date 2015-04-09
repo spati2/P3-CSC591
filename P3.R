@@ -59,7 +59,18 @@ txt.corpus<-tm_map(txt.corpus,stemDocument)
 detach(package:SnowballC, unload=TRUE)
 
 #Step 3 : Feature Selection
-dictionary=c("love","hate","follow","world","tinyurl.com","today","dont","just","gym","pleas","much","like")
+tdm = TermDocumentMatrix(txt.corpus)
+dictionary=findFreqTerms(x=tdm,lowfreq=1000,highfreq=Inf)
+if(length(dictionary)<12)
+  dictionary = c(dictionary, findFreqTerms(x=tdm,lowfreq = 500, highfreq=1000))
+if(length(dictionary)<12)
+  dictionary = c(dictionary,findFreqTerms(x=tdm,lowfreq=0,highfreq=500))
+dictionary = dictionary[1:12]
+if(!is.element("love",dictionary))
+  dictionary[12] = "love"
+if(!is.element("hate",dictionary))
+  dictionary[11] = "hate"
+#dictionary=c("love","hate","follow","world","tinyurl.com","today","dont","just","gym","pleas","much","like")
 tdm = DocumentTermMatrix(txt.corpus,list(dictionary=dictionary))
 rm(txt.corpus)
 
@@ -78,11 +89,20 @@ for(i in 1:nrow(train_data)){
 train_data<-factorise(train_data)
 #converting love column to factor
 train_data$love <- as.factor(train_data$love)
+train_data <- train_data[,!names(train_data) %in% c("hate")]
+#changing column names of train_data
+j=1
+for(i in 1:ncol(train_data)){
+  if(colnames(train_data)[i]!="love"){
+    colnames(train_data)[i]<-paste("word",j,sep="",collapse=NULL)
+    j=j+1
+  }
+}
 #datastream dataframe 
 train_datastream<-datastream_dataframe(train_data)
 #model
 mymodel <- trainMOA(model = hdt,
-                    formula = love ~ dont + follow + gym + just + like + much + pleas + tinyurl.com + today + world,
+                    formula = love ~ word1 + word2 + word3 + word4 + word5 + word6 + word7 + word8 + word9 + word10,
                     data = train_datastream)
 #prediction 
 scores <- predict(mymodel, newdata=train_data, type="response")
