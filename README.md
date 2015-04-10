@@ -1,16 +1,16 @@
 P3-CSC591 (Twitter stream analysis)
 
-##################################################################
-# Authors: 
-# Joseph Decker - jdecker
-# Sadhana Kannan - sadhan
-# Sattwik Pati - spati2
-# Shilpa Mairpady - smairpa
-# Prathyusha Vadlamudi - pvadlam
+*******************************************************************
+* Authors: 
+* Joseph Decker - jdecker
+* Sadhana Kannan - sadhan
+* Sattwik Pati - spati2
+* Shilpa Mairpady - smairpa
+* Prathyusha Vadlamudi - pvadlam
 
-# Description :
-# Twitter tweets "love/hate" sentiment classifier in real-time
-##################################################################
+* Description :
+* Twitter tweets "love/hate" sentiment classifier in real-time
+*******************************************************************
 
 To run script create variables as follows -
 consumerKey <- "<replace with your twitter consumer key>"
