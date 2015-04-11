@@ -9,7 +9,7 @@ P3-CSC591 (Twitter stream analysis)
 * Prathyusha Vadlamudi - pvadlam
 
 * Description :
-* Twitter tweets "love/hate" sentiment classifier in real-time
+* Twitter tweets "love/hate" sentiment classifier in real-time using HoeffdingTree classifier, continuous model update and static features
 
 
 *******************************************************************

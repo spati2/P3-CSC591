@@ -7,7 +7,8 @@
 # Prathyusha Vadlamudi - pvadlam
 
 # Description :
-# Twitter tweets "love/hate" sentiment classifier in real-time
+# Twitter tweets "love/hate" sentiment classifier in real-time using 
+# HoeffdingTree classifier, continuous model update and static features
 ##################################################################
 
 #function to load and install required packages
@@ -90,7 +91,7 @@ cleanTweets<-function(oneData)
   #Removing non english characters from tweet text
   oneData[,1] <- as.data.frame(str_replace_all(oneData[,1],"[^[:graph:]]", " "))
   
-  #Converting tweet encodings from ascii/latin/iso to utf-8 with unchangeables set to ""
+  #Converting tweet encodings from latin/iso to ascii with unchangeables set to ""
   oneData$text <- sapply(oneData$text,function(row){ 
     iconv(row, "ISO_8859-2", "ASCII", sub="")
     iconv(row, "latin1", "ASCII", sub="")
@@ -130,7 +131,7 @@ dataPreProcess<-function(oneData)
 }
 
 #function to perform feature Construction and Selection
-featureConstructionSelection<-function(txt.corpus){
+sentimentAnalyser<-function(txt.corpus){
 
   ###### TRAINING
   
@@ -179,9 +180,7 @@ featureConstructionSelection<-function(txt.corpus){
   #set type of classification tree as Hoeffding tree
   hdt <- HoeffdingTree(numericEstimator = "GaussianNumericAttributeClassObserver")
   #convert tdm to dataframe
-  train_data = as.data.frame(inspect(tdm))
-  
-  ###apply(matrix(train_data$love),2,sum)
+  train_data = as.data.frame(inspect(tdm))  
   
   #love column determines whether love tweet or not
   for(i in 1:nrow(train_data)){
@@ -218,61 +217,63 @@ featureConstructionSelection<-function(txt.corpus){
 
   ###### TESTING
   
-  # retrieve and pre-process testing data
-  txt.corpus=retrieveTwitterData(consumerKey,consumerSecret)
+  while(true){
+    # retrieve and pre-process testing data
+    txt.corpus=retrieveTwitterData(consumerKey,consumerSecret)
+    
+    #create DocumentTermMatrix with only chosen feature terms
+    tdm = DocumentTermMatrix(txt.corpus,list(dictionary=dictionary))
   
-  #create DocumentTermMatrix with only chosen feature terms
-  tdm = DocumentTermMatrix(txt.corpus,list(dictionary=dictionary))
-
-  #convert tdm to dataframe
-  test_data = as.data.frame(inspect(tdm))  
+    #convert tdm to dataframe
+    test_data = as.data.frame(inspect(tdm))  
+    
+    #love column determines whether love tweet or not
+    for(i in 1:nrow(test_data)){
+      if(test_data$love[i]==0){
+        #hate tweet
+        test_data$love[i] = 0
+      }       
+      else {
+        #love tweet
+        test_data$love[i] = 1
+      }       
+    }  
+    
+    #coverting strings to factor
+    test_data<-factorise(test_data)
+    #converting love column to factor
+    test_data$love <- as.factor(test_data$love)
+    #remove hate column from data as love=0 implies tweet has hate
+    test_data <- test_data[,!names(test_data) %in% c("hate")]
   
-  #love column determines whether love tweet or not
-  for(i in 1:nrow(test_data)){
-    if(test_data$love[i]==0){
-      #hate tweet
-      test_data$love[i] = 0
-    }       
-    else {
-      #love tweet
-      test_data$love[i] = 1
-    }       
-  }  
-  
-  #coverting strings to factor
-  test_data<-factorise(test_data)
-  #converting love column to factor
-  test_data$love <- as.factor(test_data$love)
-  #remove hate column from data as love=0 implies tweet has hate
-  test_data <- test_data[,!names(test_data) %in% c("hate")]
-
-  #create datastream of dataframe 
-  test_datastream<-datastream_dataframe(data=test_data)
-  
-  #update model using test data
-  mymodel <- trainMOA(model = mymodel$model,
-                      formula = love ~ .,
-                      data = test_datastream,reset=FALSE)
-  
-  #predict sentiment of tweet using model built
-  scores <- predict(mymodel, newdata=test_data, type="response")
-  str(scores)
-  #print confusion matrix
-  print("While testing: ")
-  table(scores, test_data$love)
-  
-  #total number of tweets in test data
-  totalTweets=dim(test_data)[1]
-  
-  #get true positive(Love) and true negative(Hate) values
-  trueLove=table(scores, test_data$love)["1","1"]
-  trueHate=table(scores, test_data$love)["0","0"]
-  
-  #calculate accuracy as (tp+tn)/(tp+tn+fp+fn) where (tp+tn+fp+fn)=total
-  Accuracy=(trueLove+trueHate)/totalTweets
-  
-  #print accuracy
-  print(paste("Accuracy is :",Accuracy))
+    #create datastream of dataframe 
+    test_datastream<-datastream_dataframe(data=test_data)
+    
+    #update model using test data
+    mymodel <- trainMOA(model = mymodel$model,
+                        formula = love ~ .,
+                        data = test_datastream,reset=FALSE)
+    
+    #predict sentiment of tweet using model built
+    scores <- predict(mymodel, newdata=test_data, type="response")
+    str(scores)
+    #print confusion matrix
+    print("While testing: ")
+    table(scores, test_data$love)
+    
+    #total number of tweets in test data
+    totalTweets=dim(test_data)[1]
+    
+    #get true positive(Love) and true negative(Hate) values
+    trueLove=table(scores, test_data$love)["1","1"]
+    trueHate=table(scores, test_data$love)["0","0"]
+    
+    #calculate accuracy as (tp+tn)/(tp+tn+fp+fn) where (tp+tn+fp+fn)=total
+    Accuracy=(trueLove+trueHate)/totalTweets
+    
+    #print accuracy
+    print(paste("Accuracy is :",Accuracy))
+  }
 }
 
 # script starting point for running
