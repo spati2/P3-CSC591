@@ -69,16 +69,22 @@ retrieveTwitterData<-function(consumerKey,consumerSecret)
   
   load("my_oauth.Rdata")
   
-  #check if file "tweets.json" exists and if yes delete it
-  if(file.exists("tweets.json")){
-    file.remove("tweets.json")
-  }  
-  
-  # read tweets with words love, hate in them and save to file "tweets.json"
-  filterStream("tweets.json", track = c("Love", "Hate"), timeout = 40,oauth = my_oauth)
-  
-  #parse tweets into a dataframe
-  oneData<-parseTweets("tweets.json")
+  #flag variable
+  success=FALSE
+  #while parsing tweets is unsuccessful, repeat
+  while(!success){
+    #check if file "tweets.json" exists and if yes delete it
+    if(file.exists("tweets.json")){
+      file.remove("tweets.json")
+    }  
+    
+    # read tweets with words love, hate in them and save to file "tweets.json"
+    filterStream("tweets.json", track = c("Love", "Hate"), timeout = 40,oauth = my_oauth)
+    
+    #parse tweets into a dataframe
+    oneData<-parseTweets("tweets.json")
+    if(dim(oneData)[1] > 0) success=TRUE
+  }
   #view data in new tab
   View(oneData)
   #clean the tweets text for processing further
@@ -180,7 +186,7 @@ sentimentAnalyser<-function(txt.corpus){
   #set type of classification tree as Hoeffding tree
   hdt <- HoeffdingTree(numericEstimator = "GaussianNumericAttributeClassObserver")
   #convert tdm to dataframe
-  train_data = as.data.frame(inspect(tdm))  
+  train_data = as.data.frame(inspect(tdm))   
   
   #love column determines whether love tweet or not
   for(i in 1:nrow(train_data)){
@@ -217,7 +223,8 @@ sentimentAnalyser<-function(txt.corpus){
 
   ###### TESTING
   
-  while(true){
+  #test continuously with online stream of tweets
+  while(TRUE){
     # retrieve and pre-process testing data
     txt.corpus=retrieveTwitterData(consumerKey,consumerSecret)
     
@@ -225,7 +232,7 @@ sentimentAnalyser<-function(txt.corpus){
     tdm = DocumentTermMatrix(txt.corpus,list(dictionary=dictionary))
   
     #convert tdm to dataframe
-    test_data = as.data.frame(inspect(tdm))  
+    test_data = as.data.frame(inspect(tdm)) 
     
     #love column determines whether love tweet or not
     for(i in 1:nrow(test_data)){
